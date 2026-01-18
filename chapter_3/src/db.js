@@ -1,5 +1,6 @@
 import {DatabaseSync} from 'node:sqlite'
-const db = new DatabaseSync(':memory:')
+// const db = new DatabaseSync(':memory:')
+const db = new DatabaseSync('database.sqlite')
 
 // Execyte SQK statements from strings
 db.exec(`
