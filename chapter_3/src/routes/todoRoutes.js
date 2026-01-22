@@ -16,55 +16,34 @@ router.get("/", (req, res) => {
 
 // Create a new todo
 router.post("/", (req, res) => {
-  const { task } = req.body;
-  if (!task) {
-    return res.status(400).json({ message: "Task is required" });
-  }
+  const {task} = req.body
+  const insertTodo = db.prepare(`INSERT INTO todos (user_id, task) VALUES (?,?)`)
+  const result = insertTodo.run(req.userId, task)
 
-  const insertTodo = db.prepare(
-    "INSERT INTO todos (user_id, task) VALUES (?, ?)",
-  );
-  const result = insertTodo.run(req.userId, task);
 
-  res.status(201).json({
-    id: result.lastInsertRowid,
-    task,
-  });
+  res.json({id :result.lastInsertRowid, task, completed: 0})
 });
 
 // Update a todo
 router.put("/:id", (req, res) => {
-  const { task } = req.body;
-  const { id } = req.params;
+  const {completed} = req.body
+  const {id} =req.params
+  const {page} = req.query
 
-  const updateTodo = db.prepare(
-    "UPDATE todos SET task = ? WHERE id = ? AND user_id = ?",
-  );
+  const updatedTodo = db.prepare('UPDATE todos SET completed = ? WHERE id = ?')
+  updatedTodo.run(completed, id)
 
-  const result = updateTodo.run(task, id, req.userId);
+  res.json({message : "Todo completed"})
 
-  if (result.changes === 0) {
-    return res.status(404).json({ message: "Todo not found" });
-  }
-
-  res.json({ message: "Todo updated" });
 });
 
 // Delete a todo
 router.delete("/:id", (req, res) => {
-  const { id } = req.params;
-
-  const deleteTodo = db.prepare(
-    "DELETE FROM todos WHERE id = ? AND user_id = ?",
-  );
-
-  const result = deleteTodo.run(id, req.userId);
-
-  if (result.changes === 0) {
-    return res.status(404).json({ message: "Todo not found" });
-  }
-
-  res.json({ message: "Todo deleted" });
+  const {id} = req.params
+  const userId = req.userId
+  const deleteTodo = db.prepare(`DELETE FROM todos WHERE id = ? AND user_id = ?`)
+  deleteTodo.run(id, userId)
+  res.send({message : "Todo deleted"})
 });
 
 export default router;
